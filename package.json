@@ -13,7 +13,7 @@
     "@tailwindcss/vite": "^4.1.10",
     "firebase": "^11.9.1",
     "page-flip": "^2.0.7",
-    "pdfjs-dist": "^5.3.31",
+    "pdfjs-dist": "^3.11.174",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-firebase-hooks": "^5.1.1",

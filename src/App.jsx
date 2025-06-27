@@ -5,7 +5,7 @@ import Register from './auth/Register';
 import Login from './auth/Login';
 
 import Home from './pages/Home';
-// import Reader from './pages/Reader';
+import Reader from './pages/Reader';
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         <Route path="/" element={<Home />} />
-        {/* <Route path="/reader/:id" element={<Reader />} /> */}
+        <Route path="/reader/:id" element={<Reader />} />
       </Routes>
     </BrowserRouter>
   );

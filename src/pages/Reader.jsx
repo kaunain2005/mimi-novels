@@ -6,8 +6,11 @@ import HTMLFlipBook from 'react-pageflip';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 
-// PDF.js worker setup (required)
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// ✅ PDF.js worker setup for Vite
+
+// ✅ Use this path (it exists in pdfjs-dist 4.x+)
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.js`;
+
 
 const Reader = () => {
   const { state } = useLocation();
