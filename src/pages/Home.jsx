@@ -22,8 +22,8 @@ const Home = () => {
   }, []);
 
   const openReader = (book) => {
-    navigate(`/reader/${book.id}`, { state: { book } });
-  };
+  navigate(`/reader/${book.id}`, { state: { book } });
+};
 
   return (
     <div className="p-6">

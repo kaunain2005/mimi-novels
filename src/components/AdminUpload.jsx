@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { collection, addDoc, serverTimestamp, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
-// React Icon
 import { FiTrash2 } from 'react-icons/fi';
+import * as pdfjsLib from 'pdfjs-dist';
+// Icon
 import { AiOutlineFilePdf } from 'react-icons/ai';
-
 
 const AdminUpload = () => {
   const [title, setTitle] = useState('');
@@ -16,24 +16,24 @@ const AdminUpload = () => {
   const [progress, setProgress] = useState(0);
   const [xhr, setXhr] = useState(null);
 
-  // Modal view
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // Showing uploaded Books list
+  // Delete Modal handler
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteBookId, setDeleteBookId] = useState(null);
+
+
   const [books, setBooks] = useState([]);
   const [showBooks, setShowBooks] = useState(false);
 
-  // To fetch books from Firestore
   const fetchBooks = async () => {
     try {
-      console.log("Fetching books...");
       const snapshot = await getDocs(collection(db, 'books'));
       const booksData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
       }));
-      console.log("Fetched:", booksData);
       setBooks(booksData);
       setShowBooks(true);
     } catch (err) {
@@ -41,14 +41,21 @@ const AdminUpload = () => {
     }
   };
 
-  // To delete Books from the Firestore
-  const handleDelete = async (bookId) => {
-    if (confirm("Are you sure you want to delete this book?")) {
-      await deleteDoc(doc(db, 'books', bookId));
-      setBooks(books.filter(book => book.id !== bookId));
+  const askDelete = (bookId) => {
+    setDeleteBookId(bookId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteBookId) {
+      await deleteDoc(doc(db, 'books', deleteBookId));
+      setBooks(books.filter(book => book.id !== deleteBookId));
+      setShowDeleteModal(false);
+      setDeleteBookId(null);
     }
   };
-  // To Upload Books PDF and image to Cloudnary.com
+
+
   const uploadToCloudinary = (file, resourceType) => {
     return new Promise((resolve, reject) => {
       const data = new FormData();
@@ -86,20 +93,34 @@ const AdminUpload = () => {
   };
 
   const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!pdfFile || !coverFile) return alert('Select both files');
+  e.preventDefault();
+  if (!pdfFile || !coverFile) return alert('Select both files');
 
-    setUploading(true);
-    setProgress(0);
+  setUploading(true);
+  setProgress(0);
 
-    try {
+  try {
+    // ✅ Load PDF to count pages
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(pdfFile);
+
+    reader.onload = async () => {
+      const typedarray = new Uint8Array(reader.result);
+
+      const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+      const numPages = pdf.numPages;
+      console.log("PDF Pages:", numPages);
+
+      // ✅ Upload PDF and Cover
       const pdfRes = await uploadToCloudinary(pdfFile, 'raw');
       const imgRes = await uploadToCloudinary(coverFile, 'image');
 
+      // ✅ Save metadata + page count to Firestore
       await addDoc(collection(db, 'books'), {
         title,
         author,
         description: desc,
+        pages: numPages, // ✅ ADD PAGE COUNT!
         pdfUrl: pdfRes.secure_url,
         coverUrl: imgRes.secure_url,
         createdAt: serverTimestamp(),
@@ -107,12 +128,14 @@ const AdminUpload = () => {
 
       setShowSuccessModal(true);
       resetForm();
-    } catch (err) {
-      console.error(err);
-      setShowCancelModal(true);
-      setUploading(false);
-    }
-  };
+    };
+  } catch (err) {
+    console.error(err);
+    setShowCancelModal(true);
+    setUploading(false);
+  }
+};
+
 
   const cancelUpload = () => {
     if (xhr) {
@@ -142,7 +165,6 @@ const AdminUpload = () => {
         <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Description" className="w-full border p-2" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* PDF Upload */}
           <label className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-100">
             <svg className="w-8 h-8 text-gray-600 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M12 4v16m8-8H4" />
@@ -152,7 +174,6 @@ const AdminUpload = () => {
             {pdfFile && <p className="mt-1 text-xs text-green-600">{pdfFile.name}</p>}
           </label>
 
-          {/* Image Upload */}
           <label className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-white border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-100">
             <svg className="w-8 h-8 text-gray-600 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M12 4v16m8-8H4" />
@@ -162,7 +183,6 @@ const AdminUpload = () => {
             {coverFile && <p className="mt-1 text-xs text-green-600">{coverFile.name}</p>}
           </label>
         </div>
-
 
         {uploading && (
           <div className="w-full bg-gray-200 h-4 rounded-full overflow-hidden relative">
@@ -190,7 +210,6 @@ const AdminUpload = () => {
         </div>
       </form>
 
-      {/* ✅ Upload Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
@@ -206,7 +225,6 @@ const AdminUpload = () => {
         </div>
       )}
 
-      {/* ❌ Upload Cancelled Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
@@ -222,11 +240,9 @@ const AdminUpload = () => {
         </div>
       )}
 
-      {/* Show Books list and also message if there is no Books */}
       {showBooks && (
         <div className="mt-6">
           <h3 className="text-xl font-bold mb-4">📚 Uploaded Books</h3>
-
           {books.length === 0 ? (
             <p className="text-gray-500">No books uploaded yet.</p>
           ) : (
@@ -241,7 +257,7 @@ const AdminUpload = () => {
                     View PDF
                   </a>
                   <button
-                    onClick={() => handleDelete(book.id)}
+                    onClick={() => askDelete(book.id)}
                     className="absolute top-2 right-2 p-2 bg-white rounded-full shadow hover:bg-gray-100 text-red-600 hover:text-red-800 transition"
                     title="Delete Book"
                   >
@@ -253,8 +269,6 @@ const AdminUpload = () => {
           )}
         </div>
       )}
-
-
     </div>
   );
 };
