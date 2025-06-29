@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
+// src/components/Navbar.jsx
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import gsap from 'gsap';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const navbarRef = useRef(null);
+  const flowerRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -23,43 +27,78 @@ const Navbar = () => {
     }
   };
 
+  // GSAP slide-in for Navbar + flower spin
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.from(navbarRef.current, {
+        y: -50,
+        opacity: 0,
+        duration: 1,
+        ease: 'power2.out',
+      });
+
+      gsap.to(flowerRef.current, {
+        rotate: 360,
+        repeat: -1,
+        ease: 'power1.in',
+        duration: 6,
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  // Flower hover scale
+  const handleFlowerHover = (scale) => {
+    gsap.to(flowerRef.current, {
+      scale,
+      duration: 0.3,
+      ease: 'power1.inOut',
+    });
+  };
+
   return (
-    <nav className="bg-white/80 backdrop-blur-md shadow-md fixed top-0 left-0 w-full z-50 px-4 md:px-8 py-3 flex justify-between items-center">
-      {/* Brand */}
-      <Link
-        to="/"
-        className="text-2xl md:text-3xl font-bold text-pink-500 hover:text-pink-600 transition-colors"
-      >
-        🌸 Mimi-Novels
+    <nav
+      ref={navbarRef}
+      className="bg-white/30 flex justify-between items-center px-6 py-4 shadow-lg"
+    >
+      <Link to="/" className="text-pink-500 text-xl font-bold flex items-center gap-2">
+        <span
+          id="flower-logo"
+          ref={flowerRef}
+          className="inline-block cursor-pointer"
+          onMouseEnter={() => handleFlowerHover(1.2)}
+          onMouseLeave={() => handleFlowerHover(1)}
+        >
+          🌸
+        </span>
+        Mimi-Novels
       </Link>
 
-      {/* Links */}
-      <div className="flex items-center gap-4 text-sm md:text-base">
+      <div className="flex items-center gap-4 text-sm">
         {user ? (
           <>
-            <span className="text-gray-800 hidden sm:inline">
-              👋 Hi, {user.displayName || user.email}
-            </span>
+            <span className="hidden sm:inline">👤 {user.name}</span>
             <button
               onClick={handleLogout}
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full transition-colors"
+              className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
             >
-              Logout
+              Logout☹️
             </button>
           </>
         ) : (
           <>
             <Link
               to="/login"
-              className="text-pink-500 hover:text-pink-600 font-medium transition-colors"
+              className="hover:underline hover:text-pink-400 transition"
             >
               Login
             </Link>
             <Link
               to="/register"
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full transition-colors"
+              className="hover:underline hover:text-pink-400 transition"
             >
-              Sign Up
+              Register
             </Link>
           </>
         )}

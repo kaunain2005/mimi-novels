@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
@@ -38,43 +39,53 @@ const Register = () => {
   }, []);
 
   const handleRegister = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  gsap.to(buttonRef.current, {
-    scale: 0.95,
-    duration: 0.15,
-    yoyo: true,
-    repeat: 1,
-    ease: 'power1.inOut',
-  });
+    gsap.to(buttonRef.current, {
+      scale: 0.95,
+      duration: 0.15,
+      yoyo: true,
+      repeat: 1,
+      ease: 'power1.inOut',
+    });
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    try {
+      // 1️⃣ Create user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name });
+      // 2️⃣ Update Auth profile
+      const user = userCredential.user;
+      await updateProfile(user, { displayName: name });
+
+      // 3️⃣ Save user to Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        name: name,
+        email: email,
+        createdAt: new Date()
+      });
+
+      // 4️⃣ Show Modal
+      setModal({
+        show: true,
+        success: true,
+        title: '✅ Registration Successful',
+        message: 'Welcome! Redirecting...',
+      });
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (err) {
+      setModal({
+        show: true,
+        success: false,
+        title: '❌ Registration Failed',
+        message: 'Something went wrong. Please try again!',
+      });
     }
-
-    setModal({
-      show: true,
-      success: true,
-      title: '✅ Registration Successful',
-      message: `Hi ${name}! Your account is ready 🎉`,
-    });
-
-    setTimeout(() => {
-      navigate('/login');
-    }, 2000);
-  } catch (err) {
-    setModal({
-      show: true,
-      success: false,
-      title: '❌ Registration Failed',
-      message: 'Hmm... something went wrong. Please check your email & password.',
-    });
-  }
-};
-
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
