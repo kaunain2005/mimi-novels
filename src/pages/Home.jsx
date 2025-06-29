@@ -61,7 +61,7 @@ const Home = () => {
             <div
               key={book.id}
               ref={el => (cardsRef.current[i] = el)}
-              className="border rounded-xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition cursor-pointer bg-white"
+              className="border-2 border-pink-300 rounded-xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition cursor-pointer bg-white"
               onClick={() => openReader(book)}
             >
               <img

@@ -97,7 +97,7 @@ const Reader = () => {
   };
 
   if (loading) {
-    return <div className="text-center p-6">⏳ Loading...</div>;
+    return <div className="text-center p-6">💞 Loading...</div>;
   }
 
   if (!book?.pdfUrl) {

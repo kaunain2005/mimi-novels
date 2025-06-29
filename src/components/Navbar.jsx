@@ -1,7 +1,8 @@
 // src/components/Navbar.jsx
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase'; // ✅ Make sure db is imported
+import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import gsap from 'gsap';
 
@@ -12,8 +13,26 @@ const Navbar = () => {
   const flowerRef = useRef(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        // ✅ Try to get Firestore profile name:
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setUser({
+              ...currentUser,
+              displayName: userDoc.data().name || currentUser.displayName,
+            });
+          } else {
+            setUser(currentUser);
+          }
+        } catch (err) {
+          console.error('Failed to get Firestore user name:', err);
+          setUser(currentUser);
+        }
+      } else {
+        setUser(null);
+      }
     });
     return unsubscribe;
   }, []);
@@ -27,7 +46,7 @@ const Navbar = () => {
     }
   };
 
-  // GSAP slide-in for Navbar + flower spin
+  // ✅ Your original GSAP: slide-in navbar + infinite flower spin
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from(navbarRef.current, {
@@ -48,7 +67,7 @@ const Navbar = () => {
     return () => ctx.revert();
   }, []);
 
-  // Flower hover scale
+  // ✅ Flower hover scale
   const handleFlowerHover = (scale) => {
     gsap.to(flowerRef.current, {
       scale,
@@ -78,7 +97,7 @@ const Navbar = () => {
       <div className="flex items-center gap-4 text-sm">
         {user ? (
           <>
-            <span className="hidden sm:inline">👤 {user.name}</span>
+            <span className="hidden sm:inline">👤 {user.displayName || user.email}</span>
             <button
               onClick={handleLogout}
               className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
