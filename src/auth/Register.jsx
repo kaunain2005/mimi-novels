@@ -70,7 +70,7 @@ const Register = () => {
         show: true,
         success: true,
         title: '✅ Registration Successful',
-        message: 'Welcome! Redirecting...',
+        message: 'Welcome to MiMi-Novels! Redirecting...',
       });
 
       setTimeout(() => {
@@ -82,7 +82,7 @@ const Register = () => {
         show: true,
         success: false,
         title: '❌ Registration Failed',
-        message: 'Something went wrong. Please try again!',
+        message: 'Something went wrong😭. Please try again!',
       });
     }
   };
