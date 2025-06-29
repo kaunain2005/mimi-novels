@@ -24,33 +24,42 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-900 text-white flex justify-between items-center p-4">
-      <Link to="/" className="text-xl font-bold">
-        Mimi-Novels
+    <nav className="bg-white/80 backdrop-blur-md shadow-md fixed top-0 left-0 w-full z-50 px-4 md:px-8 py-3 flex justify-between items-center">
+      {/* Brand */}
+      <Link
+        to="/"
+        className="text-2xl md:text-3xl font-bold text-pink-500 hover:text-pink-600 transition-colors"
+      >
+        🌸 Mimi-Novels
       </Link>
 
-      <div className="flex items-center gap-4">
-        {user && (
+      {/* Links */}
+      <div className="flex items-center gap-4 text-sm md:text-base">
+        {user ? (
           <>
-            <span className="text-sm">
-              👤 {user.email}
+            <span className="text-gray-800 hidden sm:inline">
+              👋 Hi, {user.displayName || user.email}
             </span>
             <button
               onClick={handleLogout}
-              className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full transition-colors"
             >
               Logout
             </button>
           </>
-        )}
-
-        {!user && (
+        ) : (
           <>
-            <Link to="/login" className="hover:underline">
+            <Link
+              to="/login"
+              className="text-pink-500 hover:text-pink-600 font-medium transition-colors"
+            >
               Login
             </Link>
-            <Link to="/register" className="hover:underline">
-              Register
+            <Link
+              to="/register"
+              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-full transition-colors"
+            >
+              Sign Up
             </Link>
           </>
         )}

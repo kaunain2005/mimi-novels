@@ -11,7 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
+  // Modal uses
   const [modal, setModal] = useState({ show: false, success: true, title: '', message: '' });
 
   const containerRef = useRef(null);
@@ -76,7 +76,7 @@ const Login = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?fit=crop&w=1470&q=80')",
+            "url('https://i.pinimg.com/736x/8a/01/19/8a01197801adf3184c96e1502251ffbf.jpg')",
         }}
       ></div>
       <div className="absolute inset-0 backdrop-blur-sm bg-black/50"></div>

@@ -5,14 +5,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import GravityFlowers from '../components/GravityFlowers';
-import Modal from '../components/Modal'; // ✅ Same Modal
+import Modal from '../components/Modal';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
+  // Modal uses
+  const [modal, setModal] = useState({ show: false, success: true, title: '', message: '' });
 
   const navigate = useNavigate();
   const containerRef = useRef(null);
@@ -38,39 +38,43 @@ const Register = () => {
   }, []);
 
   const handleRegister = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    gsap.to(buttonRef.current, {
-      scale: 0.95,
-      duration: 0.15,
-      yoyo: true,
-      repeat: 1,
-      ease: 'power1.inOut',
+  gsap.to(buttonRef.current, {
+    scale: 0.95,
+    duration: 0.15,
+    yoyo: true,
+    repeat: 1,
+    ease: 'power1.inOut',
+  });
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+    if (userCredential.user) {
+      await updateProfile(userCredential.user, { displayName: name });
+    }
+
+    setModal({
+      show: true,
+      success: true,
+      title: '✅ Registration Successful',
+      message: `Hi ${name}! Your account is ready 🎉`,
     });
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
+  } catch (err) {
+    setModal({
+      show: true,
+      success: false,
+      title: '❌ Registration Failed',
+      message: 'Hmm... something went wrong. Please check your email & password.',
+    });
+  }
+};
 
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: name });
-      }
-
-      setModalMessage('🎉 Registration successful!');
-      setModalOpen(true);
-
-      setTimeout(() => {
-        setModalOpen(false);
-        navigate('/login');
-      }, 2000);
-    } catch (err) {
-      setModalMessage(`❌ ${err.message}`);
-      setModalOpen(true);
-
-      setTimeout(() => {
-        setModalOpen(false);
-      }, 3000);
-    }
-  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
@@ -79,7 +83,7 @@ const Register = () => {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1496497243327-86e6816c1666?fit=crop&w=1470&q=80')",
+            "url('https://i.pinimg.com/736x/6c/03/9e/6c039ee0225b2711d36aec6c92d768e7.jpg')",
         }}
       ></div>
       <div className="absolute inset-0 backdrop-blur-sm bg-black/50"></div>
@@ -88,7 +92,7 @@ const Register = () => {
       {/* Card */}
       <div
         ref={containerRef}
-        className="relative z-10 bg-white/90 backdrop-blur-xl p-5 md:p-10 rounded-2xl shadow-2xl max-w-md w-full"
+        className="relative z-10 bg-white/70 backdrop-blur-xl p-5 md:p-10 rounded-2xl shadow-2xl max-w-md w-full"
       >
         <h2 className="text-2xl md:text-3xl font-extrabold mb-6 text-center text-pink-500">
           🌸 Create Mimi-Novels Account
@@ -137,8 +141,14 @@ const Register = () => {
         </p>
       </div>
 
-      {/* ✅ Shared Modal */}
-      <Modal open={modalOpen} message={modalMessage} />
+      {/* ✅ Modal */}
+      <Modal
+        show={modal.show}
+        onClose={() => setModal({ ...modal, show: false })}
+        title={modal.title}
+        message={modal.message}
+        success={modal.success}
+      />
     </div>
   );
 };
