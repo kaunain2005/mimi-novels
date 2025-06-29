@@ -3,6 +3,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+import GravityFlowersMatter from '../components/GravityFlowersPhysics';
 
 const Home = () => {
   const [books, setBooks] = useState([]);
@@ -49,6 +50,9 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
+      {/* Add fancy flowers */}
+      <GravityFlowersMatter count={10} enableClickSpawn={true} />
+
       <h1 className="text-3xl font-bold text-center mb-6 text-pink-600">
         🌸 Mimi-Novels Library
       </h1>
