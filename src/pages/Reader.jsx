@@ -1,14 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Document, Page, pdfjs } from "react-pdf";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import { auth } from "../firebase";
+import { db, auth } from "../firebase";
+import gsap from "gsap";
 
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 
-// ✅ Correct worker
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
@@ -22,10 +21,11 @@ const Reader = () => {
   const [bookmarks, setBookmarks] = useState([]);
   const [highlights, setHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pageWidth, setPageWidth] = useState(600);
+  const containerRef = useRef(null);
+  const pageContainerRef = useRef(null);
+  const userId = auth.currentUser?.uid || "guest";
 
-  const userId = auth.currentUser?.uid || "guest"; // fallback for safety
-
-  // ✅ Fetch book + progress from Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -50,12 +50,20 @@ const Reader = () => {
 
     fetchData();
   }, [bookId]);
-
-  // ✅ Save last page on change
+  // For sizing
   useEffect(() => {
-    if (book) {
-      saveProgress();
-    }
+    const handleResize = () => {
+      if (containerRef.current) {
+        setPageWidth(containerRef.current.clientWidth);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (book) saveProgress();
   }, [currentPage, bookmarks, highlights]);
 
   const saveProgress = async () => {
@@ -72,6 +80,28 @@ const Reader = () => {
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+  };
+
+  const flipPage = (direction) => {
+    // Animate out current page
+    const tl = gsap.timeline();
+    tl.to(pageContainerRef.current, {
+      x: direction === 'next' ? -100 : 100,
+      opacity: 0,
+      duration: 0.3,
+      ease: 'power1.in'
+    }).add(() => {
+      setCurrentPage((prev) => {
+        if (direction === 'next' && prev < numPages) return prev + 1;
+        if (direction === 'prev' && prev > 1) return prev - 1;
+        return prev;
+      });
+    }).to(pageContainerRef.current, {
+      x: 0,
+      opacity: 1,
+      duration: 0.3,
+      ease: 'power1.out'
+    });
   };
 
   const handleBookmark = () => {
@@ -105,26 +135,26 @@ const Reader = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-16 px-4 md:px-8">
+    <div ref={containerRef} className="max-w-4xl w-full mx-auto py-16 px-4 md:px-8">
       <h1 className="text-2xl font-bold mb-4">📖 {book.title}</h1>
 
-      <div className="flex justify-between mb-4">
-        <div className="space-x-2">
+      <div className="flex flex-wrap justify-between mb-4 gap-2">
+        <div className="space-x-2 space-y-3">
           <button
-            onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+            onClick={() => flipPage('prev')}
             className="bg-gray-200 px-4 py-2 rounded"
           >
             ◀ Prev
           </button>
           <button
-            onClick={() => currentPage < numPages && setCurrentPage(currentPage + 1)}
+            onClick={() => flipPage('next')}
             className="bg-gray-200 px-4 py-2 rounded"
           >
             Next ▶
           </button>
         </div>
 
-        <div className="space-x-2">
+        <div className="space-x-2 space-y-2">
           <button
             onClick={handleBookmark}
             className="bg-yellow-400 px-4 py-2 rounded"
@@ -140,18 +170,21 @@ const Reader = () => {
         </div>
       </div>
 
-      <Document
-        file={book.pdfUrl}
-        onLoadSuccess={onDocumentLoadSuccess}
-        className="shadow-lg border"
-      >
-        <Page
-          pageNumber={currentPage}
-          renderTextLayer
-          renderAnnotationLayer
-          className="border mb-4"
-        />
-      </Document>
+      <div ref={pageContainerRef}>
+        <Document
+          file={book.pdfUrl}
+          onLoadSuccess={onDocumentLoadSuccess}
+          className="shadow-lg border md:mx-25"
+        >
+          <Page
+            pageNumber={currentPage}
+            width={pageWidth}
+            renderTextLayer
+            renderAnnotationLayer
+            className="border mb-4"
+          />
+        </Document>
+      </div>
 
       <div className="text-center text-gray-600">
         Page {currentPage} of {numPages}
@@ -191,7 +224,7 @@ const Reader = () => {
               <li key={idx} className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(h.page)}
-                  className="text-blue-600 underline"
+                  className="text-pink-600 underline cursor-pointer font-bold"
                 >
                   Page {h.page}
                 </button>{" "}

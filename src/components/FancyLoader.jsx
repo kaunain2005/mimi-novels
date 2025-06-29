@@ -30,7 +30,7 @@ export default function FancyLoader() {
       <GravityFlowers count={20} />
       <h1
         ref={textRef}
-        className="text-4xl md:text-6xl text-pink-600 font-extrabold z-10"
+        className="text-4xl md:text-6xl sm:text-3xl text-pink-600 font-extrabold z-10"
       >
         🌸 Blooming Mimi-Novels...
       </h1>
