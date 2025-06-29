@@ -1,13 +1,14 @@
-// src/components/Navbar.jsx
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase'; // ✅ Make sure db is imported
+import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import gsap from 'gsap';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const navbarRef = useRef(null);
   const flowerRef = useRef(null);
@@ -15,23 +16,37 @@ const Navbar = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // ✅ Try to get Firestore profile name:
+        // 1️⃣ Get display name from users collection
+        let displayName = currentUser.displayName;
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
-            setUser({
-              ...currentUser,
-              displayName: userDoc.data().name || currentUser.displayName,
-            });
-          } else {
-            setUser(currentUser);
+            displayName = userDoc.data().name || displayName;
           }
         } catch (err) {
-          console.error('Failed to get Firestore user name:', err);
-          setUser(currentUser);
+          console.error('Failed to get user profile:', err);
+        }
+
+        setUser({
+          ...currentUser,
+          displayName,
+        });
+
+        // 2️⃣ Check if user is admin
+        try {
+          const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid));
+          if (adminDoc.exists()) {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (err) {
+          console.error('Failed to check admin status:', err);
+          setIsAdmin(false);
         }
       } else {
         setUser(null);
+        setIsAdmin(false);
       }
     });
     return unsubscribe;
@@ -46,7 +61,6 @@ const Navbar = () => {
     }
   };
 
-  // ✅ Your original GSAP: slide-in navbar + infinite flower spin
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from(navbarRef.current, {
@@ -63,11 +77,9 @@ const Navbar = () => {
         duration: 6,
       });
     });
-
     return () => ctx.revert();
   }, []);
 
-  // ✅ Flower hover scale
   const handleFlowerHover = (scale) => {
     gsap.to(flowerRef.current, {
       scale,
@@ -76,14 +88,15 @@ const Navbar = () => {
     });
   };
 
+  const toggleDrawer = () => setIsOpen(!isOpen);
+
   return (
     <nav
       ref={navbarRef}
-      className="bg-white/30 flex justify-between items-center px-6 py-4 mt-1 shadow-lg z-999"
+      className="bg-white/30 flex justify-between items-center px-6 py-4 mt-1 shadow-lg relative"
     >
       <Link to="/" className="text-pink-500 text-xl font-bold flex items-center gap-2">
         <span
-          id="flower-logo"
           ref={flowerRef}
           className="inline-block cursor-pointer"
           onMouseEnter={() => handleFlowerHover(1.2)}
@@ -94,34 +107,84 @@ const Navbar = () => {
         Mimi-Novels
       </Link>
 
-      <div className="flex items-center gap-4 text-sm">
-        {user ? (
+      {/* Desktop Nav */}
+      <div className="hidden sm:flex items-center gap-4 text-sm">
+        {user && (
           <>
-            <span className="hidden sm:inline">👤 {user.displayName || user.email}</span>
+            <span>👤 {user.displayName || user.email}</span>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="text-pink-600 hover:underline font-semibold"
+              >
+                Admin Panel
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
             >
-              Logout☹️
+              Logout ☹️
             </button>
           </>
-        ) : (
+        )}
+        {!user && (
           <>
-            <Link
-              to="/login"
-              className="hover:underline hover:text-pink-400 transition"
-            >
+            <Link to="/login" className="hover:underline hover:text-pink-400">
               Login
             </Link>
-            <Link
-              to="/register"
-              className="hover:underline hover:text-pink-400 transition"
-            >
+            <Link to="/register" className="hover:underline hover:text-pink-400">
               Register
             </Link>
           </>
         )}
       </div>
+
+      {/* Hamburger for mobile */}
+      <button className="block sm:hidden" onClick={toggleDrawer}>
+        <span className="w-6 h-0.5 bg-pink-600 block mb-1"></span>
+        <span className="w-6 h-0.5 bg-pink-600 block mb-1"></span>
+        <span className="w-6 h-0.5 bg-pink-600 block"></span>
+      </button>
+
+      {/* Mobile Drawer */}
+      {isOpen && (
+        <div className="absolute top-full right-0 w-full bg-white/80 backdrop-blur-md p-4 flex flex-col gap-4 sm:hidden">
+          {user && (
+            <>
+              <span className="text-black">👤 {user.displayName || user.email}</span>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-pink-600 font-semibold"
+                  onClick={toggleDrawer}
+                >
+                  Admin Panel
+                </Link>
+              )}
+              <button
+                onClick={() => {
+                  handleLogout();
+                  toggleDrawer();
+                }}
+                className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
+              >
+                Logout ☹️
+              </button>
+            </>
+          )}
+          {!user && (
+            <>
+              <Link to="/login" onClick={toggleDrawer}>
+                Login
+              </Link>
+              <Link to="/register" onClick={toggleDrawer}>
+                Register
+              </Link>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 };

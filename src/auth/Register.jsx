@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase'; // ✅ Include db here!
 import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -12,7 +12,6 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Modal uses
   const [modal, setModal] = useState({ show: false, success: true, title: '', message: '' });
 
   const navigate = useNavigate();
@@ -50,22 +49,19 @@ const Register = () => {
     });
 
     try {
-      // 1️⃣ Create user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // 2️⃣ Update Auth profile
       const user = userCredential.user;
+
       await updateProfile(user, { displayName: name });
 
-      // 3️⃣ Save user to Firestore
+      // ✅ Save to Firestore
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
-        name: name,
-        email: email,
-        createdAt: new Date()
+        name,
+        email,
+        createdAt: new Date(),
       });
 
-      // 4️⃣ Show Modal
       setModal({
         show: true,
         success: true,
@@ -78,11 +74,20 @@ const Register = () => {
       }, 2000);
 
     } catch (err) {
+      console.error(err); // ✅ show what exactly failed!
+      let customMessage = 'Something went wrong 😭';
+
+      if (err.code === 'auth/email-already-in-use') {
+        customMessage = 'Email already registered🧐🧐';
+      } else if (err.code === 'auth/weak-password') {
+        customMessage = 'Password too weak🤔🤔. Minimum 6 characters required.';
+      }
+
       setModal({
         show: true,
         success: false,
         title: '❌ Registration Failed',
-        message: 'Something went wrong😭. Please try again!',
+        message: customMessage,
       });
     }
   };
@@ -130,6 +135,7 @@ const Register = () => {
           <input
             ref={(el) => (formRefs.current[2] = el)}
             type="password"
+            minLength={6}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -152,7 +158,6 @@ const Register = () => {
         </p>
       </div>
 
-      {/* ✅ Modal */}
       <Modal
         show={modal.show}
         onClose={() => setModal({ ...modal, show: false })}
