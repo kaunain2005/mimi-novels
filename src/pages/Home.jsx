@@ -3,7 +3,8 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
-import GravityFlowersMatter from '../components/GravityFlowersPhysics';
+import GravityFlowersMatter from '../components/GravityFlowersMatter';
+import GravityFlowers from '../components/GravityFlowers';
 
 const Home = () => {
   const [books, setBooks] = useState([]);
@@ -49,39 +50,42 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6">
-      {/* Add fancy flowers */}
-      <GravityFlowersMatter count={10} enableClickSpawn={true} />
+    <>
+      <GravityFlowers />
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white p-6 z-99">
 
-      <h1 className="text-3xl font-bold text-center mb-6 text-pink-600">
-        🌸 Mimi-Novels Library
-      </h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-pink-600">
+          🌸 Mimi-Novels Library
+        </h1>
 
-      {books.length === 0 ? (
-        <p className="text-center text-gray-500">No books available.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {books.map((book, i) => (
-            <div
-              key={book.id}
-              ref={el => (cardsRef.current[i] = el)}
-              className="border-2 border-pink-300 rounded-xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition cursor-pointer bg-white"
-              onClick={() => openReader(book)}
-            >
-              <img
-                src={book.coverUrl}
-                alt={book.title}
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-pink-700">{book.title}</h3>
-                <p className="text-sm text-gray-600">By {book.author}</p>
+        {books.length === 0 ? (
+          <p className="text-center text-gray-500">No books available.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {books.map((book, i) => (
+              <div
+                key={book.id}
+                ref={el => (cardsRef.current[i] = el)}
+                className="border-2 border-pink-300 rounded-xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition cursor-pointer bg-white"
+                onClick={() => openReader(book)}
+              >
+                <img
+                  src={book.coverUrl}
+                  alt={book.title}
+                  className="w-full h-64 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="text-lg font-bold text-pink-600">{book.title}</h3>
+                  <p className="text-sm text-gray-600">By {book.author}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+        {/* Add fancy flowers */}
+        <GravityFlowersMatter count={15} enableClickSpawn lifetime={10} />
+      </div>
+    </>
   );
 };
 

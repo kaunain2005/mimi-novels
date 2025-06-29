@@ -1,12 +1,12 @@
 // src/pages/NotFound
 import { Link } from 'react-router-dom';
-import GravityFlowersMatter from '../components/GravityFlowersPhysics';
+import GravityFlowersMatter from '../components/GravityFlowersMatter';
 
 export default function NotFound() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4 bg-pink-300">
-     <GravityFlowersMatter count={10} enableClickSpawn={true} />
-
+     {/* Add fancy flowers */}
+      <GravityFlowersMatter count={15} enableClickSpawn lifetime={10} />
 
       <div className="relative z-10 text-center text-white">
         <h1 className="text-7xl font-extrabold mb-4">404</h1>
