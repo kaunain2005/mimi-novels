@@ -158,7 +158,7 @@ const AdminUpload = () => {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Upload New Book</h2>
+      <h2 className="text-2xl text-pink-500 font-bold mb-4">Upload New Book📑</h2>
       <form onSubmit={handleUpload} className="space-y-4">
         <input type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Title" className="w-full border p-2" />
         <input type="text" value={author} onChange={e => setAuthor(e.target.value)} required placeholder="Author" className="w-full border p-2" />

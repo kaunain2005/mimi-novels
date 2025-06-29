@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import gsap from 'gsap';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const navbarRef = useRef(null);
   const flowerRef = useRef(null);
@@ -16,8 +15,9 @@ const Navbar = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // 1️⃣ Get display name from users collection
+        console.log('✅ Logged in as:', currentUser.email);
         let displayName = currentUser.displayName;
+
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
           if (userDoc.exists()) {
@@ -32,16 +32,23 @@ const Navbar = () => {
           displayName,
         });
 
-        // 2️⃣ Check if user is admin
+        // 🔍 Check Firestore for admin match
         try {
-          const adminDoc = await getDoc(doc(db, 'admins', currentUser.uid));
-          if (adminDoc.exists()) {
+          const q = query(
+            collection(db, 'admins'),
+            where('email', '==', currentUser.email)
+          );
+          const snapshot = await getDocs(q);
+
+          console.log('✅ Admin query snapshot:', snapshot.size);
+
+          if (!snapshot.empty) {
             setIsAdmin(true);
           } else {
             setIsAdmin(false);
           }
         } catch (err) {
-          console.error('Failed to check admin status:', err);
+          console.error('Admin check failed:', err);
           setIsAdmin(false);
         }
       } else {
@@ -77,6 +84,7 @@ const Navbar = () => {
         duration: 6,
       });
     });
+
     return () => ctx.revert();
   }, []);
 
@@ -88,15 +96,14 @@ const Navbar = () => {
     });
   };
 
-  const toggleDrawer = () => setIsOpen(!isOpen);
-
   return (
     <nav
       ref={navbarRef}
-      className="bg-white/30 flex justify-between items-center px-6 py-4 mt-1 shadow-lg relative"
+      className="bg-white/30 flex justify-between items-center px-6 py-4 shadow-lg"
     >
       <Link to="/" className="text-pink-500 text-xl font-bold flex items-center gap-2">
         <span
+          id="flower-logo"
           ref={flowerRef}
           className="inline-block cursor-pointer"
           onMouseEnter={() => handleFlowerHover(1.2)}
@@ -107,84 +114,42 @@ const Navbar = () => {
         Mimi-Novels
       </Link>
 
-      {/* Desktop Nav */}
-      <div className="hidden sm:flex items-center gap-4 text-sm">
-        {user && (
+      <div className="flex items-center gap-4 text-sm">
+        {user ? (
           <>
-            <span>👤 {user.displayName || user.email}</span>
+            <span className="inline">👤 {user.displayName || user.email}</span>
             {isAdmin && (
               <Link
                 to="/admin"
-                className="text-pink-600 hover:underline font-semibold"
+                className="bg-pink-500 text-white font-bold px-4 py-2 rounded hover:bg-pink-600 transition"
               >
-                Admin Panel
+                Admin Panel👑
               </Link>
             )}
             <button
               onClick={handleLogout}
-              className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
+              className="bg-pink-500 text-white font-bold px-4 py-2 rounded hover:bg-red-600 transition"
             >
-              Logout ☹️
+              Logout 😭
             </button>
           </>
-        )}
-        {!user && (
+        ) : (
           <>
-            <Link to="/login" className="hover:underline hover:text-pink-400">
+            <Link
+              to="/login"
+              className="hover:underline hover:text-pink-400 transition"
+            >
               Login
             </Link>
-            <Link to="/register" className="hover:underline hover:text-pink-400">
+            <Link
+              to="/register"
+              className="hover:underline hover:text-pink-400 transition"
+            >
               Register
             </Link>
           </>
         )}
       </div>
-
-      {/* Hamburger for mobile */}
-      <button className="block sm:hidden" onClick={toggleDrawer}>
-        <span className="w-6 h-0.5 bg-pink-600 block mb-1"></span>
-        <span className="w-6 h-0.5 bg-pink-600 block mb-1"></span>
-        <span className="w-6 h-0.5 bg-pink-600 block"></span>
-      </button>
-
-      {/* Mobile Drawer */}
-      {isOpen && (
-        <div className="absolute top-full right-0 w-full bg-white/80 backdrop-blur-md p-4 flex flex-col gap-4 sm:hidden">
-          {user && (
-            <>
-              <span className="text-black">👤 {user.displayName || user.email}</span>
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className="text-pink-600 font-semibold"
-                  onClick={toggleDrawer}
-                >
-                  Admin Panel
-                </Link>
-              )}
-              <button
-                onClick={() => {
-                  handleLogout();
-                  toggleDrawer();
-                }}
-                className="text-white font-bold bg-pink-500 hover:bg-pink-600 px-4 py-2 rounded transition"
-              >
-                Logout ☹️
-              </button>
-            </>
-          )}
-          {!user && (
-            <>
-              <Link to="/login" onClick={toggleDrawer}>
-                Login
-              </Link>
-              <Link to="/register" onClick={toggleDrawer}>
-                Register
-              </Link>
-            </>
-          )}
-        </div>
-      )}
     </nav>
   );
 };

@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import GravityFlowers from '../components/GravityFlowers';
 import Modal from '../components/Modal';
+import Spinner from '../components/Spinner';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -18,6 +19,8 @@ const Register = () => {
   const containerRef = useRef(null);
   const formRefs = useRef([]);
   const buttonRef = useRef(null);
+
+  const [loading, setLoading] = useState(false);
 
   useGSAP(() => {
     gsap.from(containerRef.current, {
@@ -39,6 +42,7 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     gsap.to(buttonRef.current, {
       scale: 0.95,
@@ -89,6 +93,8 @@ const Register = () => {
         title: '❌ Registration Failed',
         message: customMessage,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,9 +151,16 @@ const Register = () => {
           <button
             ref={buttonRef}
             type="submit"
+            disabled={loading}
             className="w-full bg-pink-500 text-white py-3 px-4 rounded hover:bg-pink-700 transition"
           >
-            Sign Up
+            {loading ? (
+              <>
+                <Spinner /> <span className="ml-2">Signing Up...</span>
+              </>
+            ) : (
+              'Sign Up'
+            )}
           </button>
         </form>
         <p className="mt-6 text-gray-700 text-center text-sm md:text-base">

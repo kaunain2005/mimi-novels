@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import GravityFlowers from '../components/GravityFlowers';
 import Modal from '../components/Modal';
+import Spinner from '../components/Spinner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +18,8 @@ const Login = () => {
   const containerRef = useRef(null);
   const formRefs = useRef([]);
   const buttonRef = useRef(null);
+
+  const [loading, setLoading] = useState(false);
 
   useGSAP(() => {
     const ctx = gsap.context(() => {
@@ -41,6 +44,8 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     gsap.to(buttonRef.current, {
       scale: 0.95,
       duration: 0.15,
@@ -67,6 +72,8 @@ const Login = () => {
         title: '❌ Login Failed',
         message: 'Are yrrr🤦🏻, account bna na bhool gaye kya???',
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,9 +119,16 @@ const Login = () => {
           <button
             ref={buttonRef}
             type="submit"
+            disabled={loading}
             className="w-full bg-pink-500 text-white py-3 px-4 rounded hover:bg-pink-700 transition"
           >
-            Login
+            {loading ? (
+              <>
+                <Spinner /> <span className="ml-2">Login😵‍💫...</span>
+              </>
+            ) : (
+              'Login🫡'
+            )}
           </button>
         </form>
         <p className="mt-6 text-gray-700 text-center text-sm md:text-base">

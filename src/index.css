@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 body{
-  overflow: hidden;
+  overflow-x: hidden;
 }
 .page {
   padding: 10px;
