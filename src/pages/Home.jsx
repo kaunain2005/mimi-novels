@@ -84,7 +84,7 @@ const Home = () => {
           </div>
         )}
         {/* Add fancy flowers */}
-        <GravityFlowersMatter count={15} enableClickSpawn lifetime={10} />
+        <GravityFlowersMatter count={20} enableClickSpawn lifetime={20} />
       </div>
     </>
   );

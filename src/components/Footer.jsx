@@ -22,7 +22,7 @@ const Footer = () => {
   return (
     <footer
       ref={footerRef}
-      className="py-4 text-center text-white font-bold text-md md:text-md" // Tailwind classes
+      className="py-4 text-center text-white font-bold text-md md:text-md"
       style={{
         // Initial inline styles for GSAP target
         background: 'linear-gradient(270deg, #FF69B4, #FF8C94, #FF69B4, #FF8C94)',
