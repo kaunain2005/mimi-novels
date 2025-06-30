@@ -116,7 +116,7 @@ const Navbar = () => {
   return (
     <nav
       ref={navbarRef}
-      className="bg-white/30 flex justify-between items-center px-6 py-4 shadow-lg relative"
+      className="bg-white/30 flex justify-between items-center px-6 py-4 shadow-lg relative z-99"
     >
       <Link
         to="/"

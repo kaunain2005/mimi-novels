@@ -26,11 +26,11 @@ export default function FancyLoader() {
   }, []);
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 to-pink-300 overflow-hidden">
+    <div className="relative text-center flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-100 to-pink-300 overflow-hidden">
       <GravityFlowers count={20} />
       <h1
         ref={textRef}
-        className="text-4xl md:text-6xl sm:text-3xl text-pink-600 font-extrabold z-10"
+        className="text-2xl md:text-6xl text-pink-600 font-extrabold z-10"
       >
         🌸 Blooming Mimi-Novels...
       </h1>

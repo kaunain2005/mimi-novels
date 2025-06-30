@@ -5,6 +5,7 @@ import { FiTrash2 } from 'react-icons/fi';
 import * as pdfjsLib from 'pdfjs-dist';
 // Icon
 import { AiOutlineFilePdf } from 'react-icons/ai';
+import Spinner from './Spinner';
 
 const AdminUpload = () => {
   const [title, setTitle] = useState('');
@@ -23,11 +24,14 @@ const AdminUpload = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteBookId, setDeleteBookId] = useState(null);
 
+  // Loading Books
+  const [loading, setLoading] = useState(false);
 
   const [books, setBooks] = useState([]);
   const [showBooks, setShowBooks] = useState(false);
 
   const fetchBooks = async () => {
+    setLoading(true);
     try {
       const snapshot = await getDocs(collection(db, 'books'));
       const booksData = snapshot.docs.map(doc => ({
@@ -38,6 +42,8 @@ const AdminUpload = () => {
       setShowBooks(true);
     } catch (err) {
       console.error("Error fetching books:", err);
+    } finally{
+      setLoading(false);
     }
   };
 
@@ -158,7 +164,7 @@ const AdminUpload = () => {
 
   return (
     <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl text-pink-500 font-bold mb-4">Upload New Book📑</h2>
+      <h2 className="text-xl md:text-2xl text-pink-500 font-bold mb-4">Upload New Book📑</h2>
       <form onSubmit={handleUpload} className="space-y-4">
         <input type="text" value={title} onChange={e => setTitle(e.target.value)} required placeholder="Title" className="w-full border p-2" />
         <input type="text" value={author} onChange={e => setAuthor(e.target.value)} required placeholder="Author" className="w-full border p-2" />
@@ -204,8 +210,15 @@ const AdminUpload = () => {
             type="button"
             className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
             onClick={fetchBooks}
+            disabled={loading}
           >
-            📚 View All Uploaded Books
+            {loading ? (
+              <>
+                <Spinner /> <span className="ml-2">Loading📑📑...</span>
+              </>
+            ) : (
+              '📚 View All Uploaded Books'
+            )}
           </button>
         </div>
       </form>

@@ -138,6 +138,26 @@ const Reader = () => {
     <div ref={containerRef} className="max-w-4xl w-full mx-auto py-16 px-4 md:px-8">
       <h1 className="text-2xl font-bold mb-4">📖 {book.title}</h1>
 
+      <div ref={pageContainerRef}>
+        <Document
+          file={book.pdfUrl}
+          onLoadSuccess={onDocumentLoadSuccess}
+          className="shadow-lg border md:mx-25"
+        >
+          <Page
+            pageNumber={currentPage}
+            width={pageWidth}
+            renderTextLayer
+            renderAnnotationLayer
+            className="border mb-4"
+          />
+        </Document>
+      </div>
+
+      <div className="text-center text-gray-600">
+        Page {currentPage} of {numPages}
+      </div>
+
       <div className="flex flex-wrap justify-between mb-4 gap-2">
         <div className="space-x-2 space-y-3">
           <button
@@ -168,26 +188,6 @@ const Reader = () => {
             ✏️ Highlight
           </button>
         </div>
-      </div>
-
-      <div ref={pageContainerRef}>
-        <Document
-          file={book.pdfUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          className="shadow-lg border md:mx-25"
-        >
-          <Page
-            pageNumber={currentPage}
-            width={pageWidth}
-            renderTextLayer
-            renderAnnotationLayer
-            className="border mb-4"
-          />
-        </Document>
-      </div>
-
-      <div className="text-center text-gray-600">
-        Page {currentPage} of {numPages}
       </div>
 
       <div className="mt-8">
