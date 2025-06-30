@@ -42,7 +42,7 @@ const AdminUpload = () => {
       setShowBooks(true);
     } catch (err) {
       console.error("Error fetching books:", err);
-    } finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -54,10 +54,15 @@ const AdminUpload = () => {
 
   const confirmDelete = async () => {
     if (deleteBookId) {
-      await deleteDoc(doc(db, 'books', deleteBookId));
-      setBooks(books.filter(book => book.id !== deleteBookId));
-      setShowDeleteModal(false);
-      setDeleteBookId(null);
+      try {
+        await deleteDoc(doc(db, 'books', deleteBookId));
+        setBooks(books.filter(book => book.id !== deleteBookId));
+        setShowDeleteModal(false);
+        setDeleteBookId(null);
+      } catch (error) {
+        console.error("Error deleting book:", error);
+        alert("Failed to delete book: " + error.message); // Provide user feedback
+      }
     }
   };
 
@@ -99,48 +104,48 @@ const AdminUpload = () => {
   };
 
   const handleUpload = async (e) => {
-  e.preventDefault();
-  if (!pdfFile || !coverFile) return alert('Select both files');
+    e.preventDefault();
+    if (!pdfFile || !coverFile) return alert('Select both files');
 
-  setUploading(true);
-  setProgress(0);
+    setUploading(true);
+    setProgress(0);
 
-  try {
-    // ✅ Load PDF to count pages
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(pdfFile);
+    try {
+      // ✅ Load PDF to count pages
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(pdfFile);
 
-    reader.onload = async () => {
-      const typedarray = new Uint8Array(reader.result);
+      reader.onload = async () => {
+        const typedarray = new Uint8Array(reader.result);
 
-      const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
-      const numPages = pdf.numPages;
-      console.log("PDF Pages:", numPages);
+        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+        const numPages = pdf.numPages;
+        console.log("PDF Pages:", numPages);
 
-      // ✅ Upload PDF and Cover
-      const pdfRes = await uploadToCloudinary(pdfFile, 'raw');
-      const imgRes = await uploadToCloudinary(coverFile, 'image');
+        // ✅ Upload PDF and Cover
+        const pdfRes = await uploadToCloudinary(pdfFile, 'raw');
+        const imgRes = await uploadToCloudinary(coverFile, 'image');
 
-      // ✅ Save metadata + page count to Firestore
-      await addDoc(collection(db, 'books'), {
-        title,
-        author,
-        description: desc,
-        pages: numPages, // ✅ ADD PAGE COUNT!
-        pdfUrl: pdfRes.secure_url,
-        coverUrl: imgRes.secure_url,
-        createdAt: serverTimestamp(),
-      });
+        // ✅ Save metadata + page count to Firestore
+        await addDoc(collection(db, 'books'), {
+          title,
+          author,
+          description: desc,
+          pages: numPages, // ✅ ADD PAGE COUNT!
+          pdfUrl: pdfRes.secure_url,
+          coverUrl: imgRes.secure_url,
+          createdAt: serverTimestamp(),
+        });
 
-      setShowSuccessModal(true);
-      resetForm();
-    };
-  } catch (err) {
-    console.error(err);
-    setShowCancelModal(true);
-    setUploading(false);
-  }
-};
+        setShowSuccessModal(true);
+        resetForm();
+      };
+    } catch (err) {
+      console.error(err);
+      setShowCancelModal(true);
+      setUploading(false);
+    }
+  };
 
 
   const cancelUpload = () => {
@@ -280,6 +285,30 @@ const AdminUpload = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Book deleting  */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+            <h3 className="text-xl font-semibold mb-2">🗑️ Confirm Delete</h3>
+            <p className="mb-4 text-gray-600">Are you sure you want to delete this book? This action cannot be undone.</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+              <button
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

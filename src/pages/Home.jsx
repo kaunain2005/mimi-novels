@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import GravityFlowersMatter from '../components/GravityFlowersMatter';
 import GravityFlowers from '../components/GravityFlowers';
+import Footer from '../components/Footer';
 
 const Home = () => {
   const [books, setBooks] = useState([]);

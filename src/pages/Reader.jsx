@@ -7,6 +7,7 @@ import gsap from "gsap";
 
 import 'react-pdf/dist/Page/TextLayer.css';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
+import Footer from "../components/Footer";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -134,6 +135,15 @@ const Reader = () => {
     return <div className="text-center p-6">🚫 No PDF Found</div>;
   }
 
+  // Button click animation
+  const animateClick = (id) => {
+    gsap.fromTo(
+      `#${id}`,
+      { scale: 1 },
+      { scale: 0.9, duration: 0.15, yoyo: true, repeat: 1, ease: "power1.inOut" }
+    );
+  };
+
   return (
     <div ref={containerRef} className="max-w-4xl w-full mx-auto py-16 px-4 md:px-8">
       <h1 className="text-2xl font-bold mb-4">📖 {book.title}</h1>
@@ -176,13 +186,21 @@ const Reader = () => {
 
         <div className="space-x-2 space-y-2">
           <button
-            onClick={handleBookmark}
+            id="bookmarkButton"
+            onClick={() => {
+              animateClick("bookmarkButton");
+              handleBookmark();
+            }}
             className="bg-yellow-400 px-4 py-2 rounded"
           >
             📌 Bookmark
           </button>
           <button
-            onClick={handleHighlight}
+            id="highlightButton"
+            onClick={() => {
+              animateClick("highlightButton");
+              handleHighlight();
+            }}
             className="bg-green-400 px-4 py-2 rounded"
           >
             ✏️ Highlight

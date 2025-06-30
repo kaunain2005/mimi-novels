@@ -1,4 +1,5 @@
 import AdminUpload from '../components/AdminUpload';
+import Footer from '../components/Footer';
 
 const Admin = () => {
   return (
