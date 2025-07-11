@@ -1,6 +1,6 @@
 # 🌸 Mimi-Novels
 
-> **Version 3.0.0** — Gravity Flowers, Matter.js Physics & Polished Experience
+> **Version 4.1.0** — Gravity Flowers, Matter.js Physics & Polished Experience
 
 ---
 
